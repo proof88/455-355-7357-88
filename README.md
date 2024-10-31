@@ -10,7 +10,7 @@ And even the benchmarking part is very limited, basically a scope time measureme
 
 Depends on the following libraries:
  - [PFL](https://github.com/proof88/PFL)
- - [CConsole](https://github.com/proof88/Console).
+ - [CConsole](https://github.com/proof88/Console)
 
 ## Recommendation
 
@@ -18,7 +18,7 @@ I don't recommend you to use this framework!
 I use it because I've been already using it for 10 years, and it would take a lot of time to migrate my existing unit tests to a different framework.  
 If you want unit testing and performance measurement, find a better and more sophisticated library, for example:
  - [gtest](https://github.com/google/googletest)
- - [Google Benchmark](https://github.com/google/benchmark).
+ - [Google Benchmark](https://github.com/google/benchmark)
 
 ## Examples
 
