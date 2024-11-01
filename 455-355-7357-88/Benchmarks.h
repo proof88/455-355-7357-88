@@ -660,8 +660,11 @@ public:
         }
         tearDown();
         printBenchmarkers();
+
+        // subtests start
         if (!bSkipAllSubTests)
         {
+            bWeAreInSubTest = true;
             for (std::vector<TUNITSUBTESTFUNCNAMEPAIR>::size_type i = 0; i < tSubTests.size(); ++i)
             {
                 iCurrentSubTest = i;
@@ -681,7 +684,10 @@ public:
                 tearDown();
                 printBenchmarkers();
             }
+            bWeAreInSubTest = false;
         }
+        // subtests ended
+
         finalize();
         return isPassed();
     }
@@ -716,6 +722,17 @@ public:
     {
         assert(iCurrentSubTest < tSubTests.size());
         tSubTests[iCurrentSubTest].second;
+    }
+
+
+    /**
+        Convenience function to know if we are running a subtest or not.
+
+        @return True if we are in a subtest or its corresponding setUp(), tearDown() or printBenchmarkers(), false otherwise.
+    */
+    const bool& isSubTestRunning() const
+    {
+        return bWeAreInSubTest;
     }
 
 
@@ -760,6 +777,7 @@ private:
     std::vector<std::string> sInfoMessages;            /**< Informational messages. */
     std::vector<TUNITSUBTESTFUNCNAMEPAIR> tSubTests;   /**< Unit-subtests, not mandatory. */
     size_t iCurrentSubTest;                            /**< Index of currently running unit-subtest, valid only if tSubTests is NOT empty and a subtest is running. */
+    bool bWeAreInSubTest;                              /**< True only if a subtest is running, valid also in its setUp(), tearDown() and printBenchmarkers(). */
     int nSucceededSubTests;                            /**< Number of succeeded unit-subtests. */
     bool bTestRan;                                     /**< Did the test run? */
 
@@ -795,11 +813,19 @@ private:
             return;
         }
 
-        addToInfoMessages("Scope Benchmarkers:");
+        if (isSubTestRunning())
+        {
+            addToInfoMessages((std::string("  <").append(sTestFile + "::" + tSubTests[iCurrentSubTest].second).append("> Scope Benchmarkers:")).c_str());
+        }
+        else
+        {
+            addToInfoMessages((std::string("  <").append(sTestFile).append("> Scope Benchmarkers:")).c_str());
+        }
+
         for (const auto& bmData : ScopeBenchmarker::getAllData())
         {
             addToInfoMessages(
-                ("  " +
+                ("    " +
                     bmData.second.m_name +
                     " Iterations: " + std::to_string(bmData.second.m_iterations) +
                     ", Min/Max/Avg Duration: " +
@@ -808,6 +834,7 @@ private:
                     std::to_string(bmData.second.getAverageDurationMillisecs()) +
                     ", Total Duration: " + std::to_string(bmData.second.m_durationsTotalMillisecs)).c_str());
         }
+        addToInfoMessages("");
 
         ScopeBenchmarker::clear(); // since ScopeBenchmarker works with static data, make sure we dont leave anything there
     }
@@ -821,6 +848,7 @@ private:
         sErrorMessages.clear();
         sInfoMessages.clear();
         iCurrentSubTest = 0;
+        bWeAreInSubTest = false;
         nSucceededSubTests = 0;
     }
 
