@@ -53,77 +53,18 @@ public:
     */
     Benchmark(const std::string& testFile = "", const std::string& testName = "") :
         Test(testFile, testName)
+    {}
+
+protected:
+
+    virtual void preSetUp() override
     {
+        initBenchmarkers();
     }
 
-
-    /**
-        Executes the test. Runs the overridable testMethod() and every unit-subtests.
-        run() calls functions in the following order:
-         - initialize();
-         - if ( setUp() )
-           - TestMethod();
-         - tearDown();
-         - for all subtests:
-           - if ( setUp() )
-             - subtest();
-           - tearDown();
-         - finalize();
-
-        @return True if the test passed, false otherwise.
-    */
-    virtual bool run() override
+    virtual void postTearDown() override
     {
-        reset();
-        bTestRan = true;
-        initialize();
-        bool bSkipAllSubTests;
-        initBenchmarkers();
-        if (setUp())
-        {
-            bSkipAllSubTests = false;
-            if (!testMethod())
-            {
-                addToErrorMessages(std::string("  <").append(sTestFile).append("> failed!").c_str());
-            }
-        }
-        else
-        {
-            bSkipAllSubTests = true;
-            addToErrorMessages(std::string("  <").append(sTestFile).append("> setUp() failed!").c_str());
-        }
-        tearDown();
         printBenchmarkers();
-
-        // subtests start
-        if (!bSkipAllSubTests)
-        {
-            bWeAreInSubTest = true;
-            for (size_t i = 0; i < tSubTests.size(); ++i)
-            {
-                iCurrentSubTest = i;
-                initBenchmarkers();
-                if (setUp())
-                {
-                    PFNUNITSUBTEST func = tSubTests[i].first;
-                    if ((this->*func)())
-                        ++nSucceededSubTests;
-                    else
-                        addToErrorMessages(std::string("  <").append(tSubTests[i].second).append("> failed!").c_str());
-                }
-                else
-                {
-                    addToErrorMessages(std::string("  <").append(tSubTests[i].second).append("> SKIPPED due to setUp() failed!").c_str());
-                }
-                tearDown();
-                printBenchmarkers();
-            }
-            bWeAreInSubTest = false;
-        }
-        // subtests ended
-
-        finalize();
-        return isPassed();
     }
 
 private:

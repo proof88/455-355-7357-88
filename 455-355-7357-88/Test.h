@@ -595,7 +595,74 @@ public:
     }
 
 
-    virtual bool run() = 0;
+    /**
+        Executes the test. Runs the overridable testMethod() and every unit-subtests.
+        The functions are called in the following order:
+         - initialize();
+         - if ( setUp() )
+           - testMethod();
+         - tearDown();
+         - for all subtests:
+           - if ( setUp() )
+             - subtest();
+           - tearDown();
+         - finalize();
+
+        @return True if the test including all subtests passed, false otherwise.
+    */
+    bool run()
+    {
+        reset();
+        bTestRan = true;
+        initialize();
+        bool bSkipAllSubTests;
+        preSetUp();
+        if (setUp())
+        {
+            bSkipAllSubTests = false;
+            if (!testMethod())
+            {
+                addToErrorMessages(std::string("  <").append(sTestFile).append("> failed!").c_str());
+            }
+        }
+        else
+        {
+            bSkipAllSubTests = true;
+            addToErrorMessages(std::string("  <").append(sTestFile).append("> setUp() failed!").c_str());
+        }
+        tearDown();
+        postTearDown();
+
+        // subtests start
+        if (!bSkipAllSubTests)
+        {
+            bWeAreInSubTest = true;
+            for (size_t i = 0; i < tSubTests.size(); ++i)
+            {
+                iCurrentSubTest = i;
+                preSetUp();
+                if (setUp())
+                {
+                    PFNUNITSUBTEST func = tSubTests[i].first;
+                    if ((this->*func)())
+                        ++nSucceededSubTests;
+                    else
+                        addToErrorMessages(std::string("  <").append(tSubTests[i].second).append("> failed!").c_str());
+                }
+                else
+                {
+                    addToErrorMessages(std::string("  <").append(tSubTests[i].second).append("> SKIPPED due to setUp() failed!").c_str());
+                }
+                tearDown();
+                postTearDown();
+            }
+            bWeAreInSubTest = false;
+        }
+        // subtests ended
+
+        finalize();
+        return isPassed();
+    }
 
 
     /**
@@ -646,31 +713,72 @@ protected:
 
     // ---------------------------------------------------------------------------
 
-    virtual void initialize() {}; /**< This gets called before running the test, use this instead of a ctor. */
+    /**
+        This gets called before running the test, use this instead of a ctor.
+        Test developer implements it in derived test class.
+    */
+    virtual void initialize() {};
 
-    virtual bool testMethod() { return true; }; /**< This may be overridden in actual unit tests. It won't be invoked if setUp() returned false! */
+    /**
+        This may be overridden in derived test class.
+        It won't be invoked if setUp() returns false!
+        Test developer implements it in derived test class.
+    */
+    virtual bool testMethod() { return true; }; 
 
-    virtual bool setUp() { return true; };   /**< This gets called before testMethod() and every subtest. */
+    /**
+        This gets called before testMethod() and every subtest.
+        Test developer implements it in derived test class.
+    */
+    virtual bool setUp() { return true; };
 
-    virtual void tearDown() {};   /**< This gets called after testMethod() and every subtest.
-                                       This is invoked even if testMethod() or a subtest got skipped due to setUp() returned false! */
+    /**
+        This gets called after testMethod() and every subtest.
+        This is invoked even if testMethod() or a subtest got skipped due to setUp() returned false!
+        Test developer implements it in derived test class.
+    */
+    virtual void tearDown() {};
 
-    virtual void finalize() {};   /**< This gets called after running the whole tests, use this instead of a dtor. */
+    /**
+        This gets called after running all tests, use this instead of a dtor.
+        Test developer implements it in derived test class.
+    */
+    virtual void finalize() {};
 
     /**
         Adds the given unit-subtest function with the given name to the test.
+        Test developer can use it to add defined subtests within the derived test class.
+        Such subtests must be member functions of the derived test class.
     */
     void addSubTest(const char* subTestName, PFNUNITSUBTEST subTestFunc)
     {
-        if (subTestFunc == NULL)
+        if (subTestFunc == nullptr)
+        {
             return;
+        }
 
         TUNITSUBTESTFUNCNAMEPAIR newPair(subTestFunc, std::string(subTestName));
         tSubTests.push_back(newPair);
     } // addSubTest()
 
+    /**
+        Invoked by run() right before any call to setUp().
+        To be implemented by a specific test type within this test framework: see class Benchmark as example.
+        The test framework can implement test-type specific initialization here.
+    */
+    virtual void preSetUp()
+    {}
+
+    /**
+        Invoked by run() right before any call to tearDown().
+        To be implemented by a specific test type within this test framework: see class Benchmark as example.
+        The test framework can implement test-type specific teardown here.
+    */
+    virtual void postTearDown()
+    {}
+
 protected:
-    typedef std::pair<PFNUNITSUBTEST, std::string> TUNITSUBTESTFUNCNAMEPAIR;   /**< Unit-subtest function pointer and subtest name pair. */
+    typedef std::pair<PFNUNITSUBTEST, std::string> TUNITSUBTESTFUNCNAMEPAIR;   /**< Subtest function pointer and subtest name pair. */
 
     // ---------------------------------------------------------------------------
 
@@ -678,11 +786,11 @@ protected:
     std::string sTestFile;                             /**< Testfile name. */
     std::vector<std::string> sErrorMessages;           /**< Error messages. */
     std::vector<std::string> sInfoMessages;            /**< Informational messages. */
-    std::vector<TUNITSUBTESTFUNCNAMEPAIR> tSubTests;   /**< Unit-subtests. */
-    size_t iCurrentSubTest;                            /**< Index of currently running unit-subtest, valid only if bWeAreInSubTest is true. */
+    std::vector<TUNITSUBTESTFUNCNAMEPAIR> tSubTests;   /**< Subtests as filled by addSubTest(). */
+    size_t iCurrentSubTest;                            /**< Index of currently running subtest, valid only if bWeAreInSubTest is true. */
     bool bWeAreInSubTest;                              /**< True only if a subtest is running, valid also in the subtest's corresponding setUp(), tearDown() and printBenchmarkers(). */
-    int nSucceededSubTests;                            /**< Number of succeeded unit-subtests. */
-    bool bTestRan;                                     /**< Did the test run? */
+    int nSucceededSubTests;                            /**< Number of succeeded subtests. */
+    bool bTestRan;                                     /**< Did the test attempt to run? */
 
     // ---------------------------------------------------------------------------
 
