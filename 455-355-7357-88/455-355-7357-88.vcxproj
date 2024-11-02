@@ -212,6 +212,7 @@
   <ItemGroup>
     <ClInclude Include="Benchmarks.h" />
     <ClInclude Include="ScopeBenchmarker.h" />
+    <ClInclude Include="UnitTest.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Benchmarks.cpp" />

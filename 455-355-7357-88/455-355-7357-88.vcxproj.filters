@@ -21,6 +21,9 @@
     <ClInclude Include="ScopeBenchmarker.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="UnitTest.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Benchmarks.cpp">
