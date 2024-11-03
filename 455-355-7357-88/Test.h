@@ -128,6 +128,7 @@ public:
         console.OLn("Passed tests: %d / %d (SubTests: %d / %d)", nSucceededTests, tests.size(), nTotalPassedSubTests, nTotalSubTests);
         console.NOn();
         console.OLn("========================================================");
+        console.OLn("");
     } // runTests()
 #endif
 
