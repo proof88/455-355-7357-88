@@ -4,7 +4,9 @@
     ###################################################################################
     ScopeBenchmarker.h
     Basic header-only scope benchmarker class to conveniently stopwatch a scope.
+    Part of the 455-355-7357-88 (ASS-ESS-TEST-88) test framework.
     Made by PR00F88
+    2024
     ###################################################################################
 */
 
@@ -14,7 +16,7 @@
 #include <string>
 #include <utility>
 
-#include "../../PFL/PFL/PFL.h"  // for PFL::StringHash
+#include "PFL.h"  // for PFL::StringHash
 
 /**
 * Basic header-only scope benchmarker class to conveniently stopwatch a scope.

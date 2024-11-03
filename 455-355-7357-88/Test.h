@@ -3,8 +3,8 @@
 /*
     ###################################################################################
     Test.h
-    Base class for UnitTest and Benchmark.
-    Part of the 455-355-7357-88 (ASS-ESS-TEST-88) test suite.
+    Base class for UnitTest and Benchmark classes.
+    Part of the 455-355-7357-88 (ASS-ESS-TEST-88) test framework.
     Made by PR00F88
     2024
     ###################################################################################
@@ -12,15 +12,124 @@
 
 #include <cassert>
 #include <cmath>
-#include <map>
+#include <memory>   // for std::unique_ptr; requires cpp11
 #include <sstream>
 #include <string>
 #include <vector>
 #include <utility>  // std::size_t, etc.
 
+#ifdef TEST_WITH_CCONSOLE
+#include "CConsole.h"  // CConsole lib: https://github.com/proof88/Console
+#endif
+
 class Test
 {
 public:
+
+    static constexpr char* frameworkVersion = "1.0";
+
+    /**
+        Convenience function for running all test cases and summarizing the results.
+        The idea is the following:
+        - you define your tests by creating test cases in classes derived from either the UnitTest or the Benchmark class;
+        - to run these tests i.e. invoke their run() method, either you write your own code or use this function by
+          passing the vector containing your derived test class instances.
+
+        You can see examples of this:
+         - Benchmarks.cpp (in this repo)
+         - https://github.com/proof88/PGE/blob/master/PGE/UnitTests/UnitTests.cpp
+         - https://github.com/proof88/PRooFPS-dd/blob/main/PRooFPS-dd/Tests/PRooFPS-dd-Tests.cpp
+
+        It needs a Console reference to output the summarized results.
+        The TEST_WITH_CCONSOLE macro needs to be defined to use this function.
+        The Console lib is this: https://github.com/proof88/Console .
+
+        If you want to use your own test runner and summarizer implementation, then don't define the TEST_WITH_CCONSOLE macro before including Test.h.
+    */
+#ifdef TEST_WITH_CCONSOLE
+    static void runTests(std::vector<std::unique_ptr<Test>>& tests, CConsole& console, const char* title = "")
+    {
+        console.OLn("%s", title);
+        console.OLn("Powered by: 455-355-7357-88 (ASS-ESS-TEST-88) Test Framework by PR00F88, version: %s", frameworkVersion);
+
+        size_t nSucceededTests = 0;
+        size_t nTotalSubTests = 0;
+        size_t nTotalPassedSubTests = 0;
+        for (size_t i = 0; i < tests.size(); ++i)
+        {
+            console.OLn("Running test %d / %d ... ", i + 1, tests.size());
+            tests[i]->run();
+        }
+
+        // summarizing
+        console.OLn("");
+        for (size_t i = 0; i < tests.size(); ++i)
+        {
+            for (const auto& infoMsg : tests[i]->getInfoMessages())
+            {
+                console.OLn("%s", infoMsg.c_str());
+            }
+
+            if (tests[i]->isPassed())
+            {
+                ++nSucceededTests;
+                console.SOn();
+                if (tests[i]->getName().empty())
+                {
+                    console.OLn("Test passed: %s(%d)!", tests[i]->getFile().c_str(), tests[i]->getSubTestCount());
+                }
+                else if (tests[i]->getFile().empty())
+                {
+                    console.OLn("Test passed: %s(%d)!", tests[i]->getName().c_str(), tests[i]->getSubTestCount());
+                }
+                else
+                {
+                    console.OLn("Test passed: %s(%d) in %s!", tests[i]->getName().c_str(), tests[i]->getSubTestCount(), tests[i]->getFile().c_str());
+                }
+                console.SOff();
+            }
+            else
+            {
+                console.EOn();
+                if (tests[i]->getName().empty())
+                {
+                    console.OLn("Test failed: %s", tests[i]->getFile().c_str());
+                }
+                else if (tests[i]->getFile().empty())
+                {
+                    console.OLn("Test failed: %s", tests[i]->getName().c_str());
+                }
+                else
+                {
+                    console.OLn("Test failed: %s in %s", tests[i]->getName().c_str(), tests[i]->getFile().c_str());
+                }
+                console.Indent();
+                for (size_t j = 0; j < tests[i]->getErrorMessages().size(); ++j)
+                {
+                    console.OLn("%s", tests[i]->getErrorMessages()[j].c_str());
+                }
+                console.Outdent();
+                console.EOff();
+            }
+            nTotalSubTests += tests[i]->getSubTestCount();
+            nTotalPassedSubTests += tests[i]->getPassedSubTestCount();
+        }
+
+        console.OLn("");
+        console.OLn("========================================================");
+        if (nSucceededTests == tests.size())
+        {
+            console.SOn();
+        }
+        else
+        {
+            console.EOn();
+        }
+        console.OLn("Passed tests: %d / %d (SubTests: %d / %d)", nSucceededTests, tests.size(), nTotalPassedSubTests, nTotalSubTests);
+        console.NOn();
+        console.OLn("========================================================");
+    } // runTests()
+#endif
 
     /**
         @param testFile The file where the test is defined.

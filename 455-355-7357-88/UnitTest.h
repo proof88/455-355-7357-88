@@ -4,7 +4,7 @@
     ###################################################################################
     UnitTest.h
     Basic header-only Unit Test class.
-    Part of the 455-355-7357-88 (ASS-ESS-TEST-88) test suite.
+    Part of the 455-355-7357-88 (ASS-ESS-TEST-88) test framework.
     Made by PR00F88
     2014
     ###################################################################################

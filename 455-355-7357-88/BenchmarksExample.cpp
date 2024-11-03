@@ -1,27 +1,24 @@
 /*
     ###############################################
-    Benchmarks.cpp
-    Example of Benchmark class
+    BenchmarksExample.cpp
+    Example for Benchmark class.
+    You don't need this cpp file in your project, this is just an example for using my Benchmark class.
     Made by PR00F88
+    2024
     ################################################
 */
 
+// need to define this macro so we can use Test::runTests() with Console lib
+#ifndef TEST_WITH_CCONSOLE
+#define TEST_WITH_CCONSOLE
+#endif
 #include "Benchmarks.h"
 
 #include <cassert>
 #include <memory>  // for std::unique_ptr; requires cpp11
 #include <thread>  // for sleep_for(); requires cpp11
 
-//#ifndef WINPROOF88_ALLOW_CONTROLS_AND_DIALOGS
-//#define WINPROOF88_ALLOW_CONTROLS_AND_DIALOGS
-//#endif
-//#ifndef WINPROOF88_ALLOW_MSG_USER_WINMESSAGES
-//#define WINPROOF88_ALLOW_MSG_USER_WINMESSAGES
-//#endif
-
-#include "../../PFL/PFL/winproof88.h"
-
-#include "../../Console/CConsole/src/CConsole.h"
+#include "winproof88.h"  // part of PFL lib: https://github.com/proof88/PFL
 
 static CConsole& getConsole()
 {
@@ -51,9 +48,12 @@ protected:
 
     virtual void initialize() override
     {
+        // well, I just added only 1 subtest, which means I should rather implement the test by overriding testMethod(), but
+        // let's treat this as an example on how to add subtest to a test class!
         addSubTest("test_scope_benchmarking", (PFNUNITSUBTEST)&ExampleBenchmarkTest::test_scope_benchmarking);
 
-        std::this_thread::sleep_for(std::chrono::seconds(1)); // sleep to avoid performance disturbance caused by Visual Studio background debug tools init
+        // sleep to avoid performance disturbance caused by Visual Studio background debug tools init after start debugging
+        std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
 private:
@@ -113,91 +113,20 @@ int WINAPI WinMain(_In_ HINSTANCE /*hInstance*/, _In_opt_ HINSTANCE /*hPrevInsta
     getConsole().Initialize(CON_TITLE, true);
     //getConsole().SetLoggingState("4LLM0DUL3S", true);
     getConsole().SetErrorsAlwaysOn(false);
-    getConsole().OLn(CON_TITLE);
-    getConsole().L();
-    getConsole().OLn("");
-
-    std::vector<std::unique_ptr<Benchmark>> tests;
-
-    tests.push_back(std::unique_ptr<Benchmark>(new ExampleBenchmarkTest));
-
-    std::vector<std::unique_ptr<Benchmark>>::size_type nSucceededTests = 0;
-    std::vector<std::unique_ptr<Benchmark>>::size_type nTotalSubTests = 0;
-    std::vector<std::unique_ptr<Benchmark>>::size_type nTotalPassedSubTests = 0;
-    for (std::vector<std::unique_ptr<Benchmark>>::size_type i = 0; i < tests.size(); ++i)
-    {
-        getConsole().OLn("Running test %d / %d ... ", i + 1, tests.size());
-        tests[i]->run();
-    }
-
-    // summarizing
-    getConsole().OLn("");
-    for (std::vector<std::unique_ptr<Benchmark>>::size_type i = 0; i < tests.size(); ++i)
-    {
-        for (const auto& infoMsg : tests[i]->getInfoMessages())
-        {
-            getConsole().OLn("%s", infoMsg.c_str());
-        }
-
-        if (tests[i]->isPassed())
-        {
-            ++nSucceededTests;
-            getConsole().SOn();
-            if (tests[i]->getName().empty())
-            {
-                getConsole().OLn("Test passed: %s(%d)!", tests[i]->getFile().c_str(), tests[i]->getSubTestCount());
-            }
-            else if (tests[i]->getFile().empty())
-            {
-                getConsole().OLn("Test passed: %s(%d)!", tests[i]->getName().c_str(), tests[i]->getSubTestCount());
-            }
-            else
-            {
-                getConsole().OLn("Test passed: %s(%d) in %s!", tests[i]->getName().c_str(), tests[i]->getSubTestCount(), tests[i]->getFile().c_str());
-            }
-            getConsole().SOff();
-        }
-        else
-        {
-            getConsole().EOn();
-            if (tests[i]->getName().empty())
-            {
-                getConsole().OLn("Test failed: %s", tests[i]->getFile().c_str());
-            }
-            else if (tests[i]->getFile().empty())
-            {
-                getConsole().OLn("Test failed: %s", tests[i]->getName().c_str());
-            }
-            else
-            {
-                getConsole().OLn("Test failed: %s in %s", tests[i]->getName().c_str(), tests[i]->getFile().c_str());
-            }
-            getConsole().Indent();
-            for (std::vector<std::string>::size_type j = 0; j < tests[i]->getErrorMessages().size(); ++j)
-            {
-                getConsole().OLn("%s", tests[i]->getErrorMessages()[j].c_str());
-            }
-            getConsole().Outdent();
-            getConsole().EOff();
-        }
-        nTotalSubTests += tests[i]->getSubTestCount();
-        nTotalPassedSubTests += tests[i]->getPassedSubTestCount();
-    }
 
     getConsole().OLn("");
-    getConsole().OLn("========================================================");
-    if (nSucceededTests == tests.size())
-    {
-        getConsole().SOn();
-    }
-    else
-    {
-        getConsole().EOn();
-    }
-    getConsole().OLn("Passed tests: %d / %d (SubTests: %d / %d)", nSucceededTests, tests.size(), nTotalPassedSubTests, nTotalSubTests);
-    getConsole().NOn();
-    getConsole().OLn("========================================================");
+    // Expecting NDEBUG to be reliable: https://man7.org/linux/man-pages/man3/assert.3.html
+#ifdef NDEBUG
+    const char* const szBuildType = "Release";
+#else
+    const char* const szBuildType = "Debug";
+#endif 
+    getConsole().OLn("%s. Build Type: %s, Timestamp: %s @ %s", CON_TITLE, szBuildType, __DATE__, __TIME__);
 
+    std::vector<std::unique_ptr<Test>> tests;
+    tests.push_back(std::unique_ptr<Test>(new ExampleBenchmarkTest));
+
+    Test::runTests(tests, getConsole(), "Running Performance Tests ...");
     system("pause");
 
     getConsole().Deinitialize();

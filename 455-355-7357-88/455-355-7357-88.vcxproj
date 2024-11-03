@@ -113,6 +113,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalIncludeDirectories>../../PFL/PFL/;../../Console/CConsole/src/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -133,6 +134,7 @@
       <TreatWarningAsError>true</TreatWarningAsError>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <AdditionalIncludeDirectories>../../PFL/PFL/;../../Console/CConsole/src/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -155,6 +157,7 @@
       <TreatWarningAsError>true</TreatWarningAsError>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <AdditionalIncludeDirectories>../../PFL/PFL/;../../Console/CConsole/src/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -210,13 +213,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\PFL\PFL\PFL.h" />
     <ClInclude Include="Benchmarks.h" />
     <ClInclude Include="ScopeBenchmarker.h" />
     <ClInclude Include="Test.h" />
     <ClInclude Include="UnitTest.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Benchmarks.cpp" />
+    <ClCompile Include="BenchmarksExample.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
