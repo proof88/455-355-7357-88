@@ -74,10 +74,10 @@ private:
             const std::string scopeBmName = "sleep-" + std::to_string(sleepFor);
             const std::string scopeOhBmName = "sleep-oh-" + std::to_string(sleepFor);
             {
-                ScopeBenchmarker scopeOhBm(scopeOhBmName); // "scope duration measurement overhead" measurement starts here, "oh" stands for overhead
+                ScopeBenchmarker<std::chrono::milliseconds> scopeOhBm(scopeOhBmName); // "scope duration measurement overhead" measurement starts here, "oh" stands for overhead
                 for (int i = 0; i < iterationsPerSleepTime; i++)
                 {
-                    ScopeBenchmarker scopeBm(scopeBmName); // scope duration measurement starts here
+                    ScopeBenchmarker<std::chrono::milliseconds> scopeBm(scopeBmName); // scope duration measurement starts here
                     std::this_thread::sleep_for(std::chrono::milliseconds(sleepFor));
                     // scope duration measurement ends here
                 }
@@ -85,19 +85,19 @@ private:
             }
 
             // this is how we can access ScopeBenchmarker data after ScopeBenchmarker object is already out of scope
-            const auto& scopeBmData = ScopeBenchmarker::getDataByName(scopeBmName);
+            const auto& scopeBmData = ScopeBenchmarkerDataStore::getDataByName(scopeBmName);
 
-            b &= assertBetween(sleepFor * iterationsPerSleepTime, 5000, scopeBmData.m_durationsTotalMillisecs); // should be assertDurationsTotalBetween
-            b &= assertBetween(sleepFor, 200, scopeBmData.m_durationsMinMillisecs);
-            b &= assertBetween(scopeBmData.m_durationsMinMillisecs, static_cast<long long>(200), scopeBmData.m_durationsMaxMillisecs);
+            b &= assertBetween(sleepFor * iterationsPerSleepTime, 5000, scopeBmData.m_durationsTotal); // should be assertDurationsTotalBetween
+            b &= assertBetween(sleepFor, 200, scopeBmData.m_durationsMin);
+            b &= assertBetween(scopeBmData.m_durationsMin, static_cast<long long>(200), scopeBmData.m_durationsMax);
             b &= assertEquals(iterationsPerSleepTime, scopeBmData.m_iterations); // should be assertIterationCountEquals
-            b &= assertBetween(0, 200, scopeBmData.getAverageDurationMillisecs()); // should be assertDurationsAverageBetween
+            b &= assertBetween(0, 200, scopeBmData.getAverageDuration()); // should be assertDurationsAverageBetween
 
-            const auto& scopeOhBmData = ScopeBenchmarker::getDataByName(scopeOhBmName);
+            const auto& scopeOhBmData = ScopeBenchmarkerDataStore::getDataByName(scopeOhBmName);
             addToInfoMessages(
                 ("  " +
                  scopeBmName +
-                 ", Total Overhead: " + std::to_string(scopeOhBmData.m_durationsTotalMillisecs - scopeBmData.m_durationsTotalMillisecs)).c_str());
+                 ", Total Overhead: " + std::to_string(scopeOhBmData.m_durationsTotal - scopeBmData.m_durationsTotal)).c_str());
         }
 
         return b;

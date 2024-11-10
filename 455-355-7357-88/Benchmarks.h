@@ -71,12 +71,12 @@ private:
 
     void initBenchmarkers()
     {
-        ScopeBenchmarker::clear(); // since ScopeBenchmarker works with static data, make sure previous tests did not leave something there
+        ScopeBenchmarkerDataStore::clear(); // since ScopeBenchmarker works with static data, make sure previous tests did not leave something there
     }
 
     void printBenchmarkers()
     {
-        if (ScopeBenchmarker::getAllData().empty())
+        if (ScopeBenchmarkerDataStore::getAllData().empty())
         {
             return;
         }
@@ -90,21 +90,25 @@ private:
             addToInfoMessages((std::string("  <").append(sTestFile).append("> Scope Benchmarkers:")).c_str());
         }
 
-        for (const auto& bmData : ScopeBenchmarker::getAllData())
+        for (const auto& bmData : ScopeBenchmarkerDataStore::getAllData())
         {
             addToInfoMessages(
                 ("    " +
                     bmData.second.m_name +
                     " Iterations: " + std::to_string(bmData.second.m_iterations) +
-                    ", Min/Max/Avg Duration: " +
-                    std::to_string(bmData.second.m_durationsMinMillisecs) + "/" +
-                    std::to_string(bmData.second.m_durationsMaxMillisecs) + "/" +
-                    std::to_string(bmData.second.getAverageDurationMillisecs()) +
-                    ", Total Duration: " + std::to_string(bmData.second.m_durationsTotalMillisecs)).c_str());
+                    ", Durations: Min/Max/Avg: " +
+                    std::to_string(bmData.second.m_durationsMin) + "/" +
+                    std::to_string(bmData.second.m_durationsMax) + "/" +
+                    /* Test::toString() for getting rid of unneeded zeros after decimal point */
+                    toString(bmData.second.getAverageDuration()) +
+                    " " + bmData.second.getUnitString() +
+                    ", Total: " +
+                    std::to_string(bmData.second.m_durationsTotal) +
+                    " " + bmData.second.getUnitString()).c_str());
         }
         addToInfoMessages("");
 
-        ScopeBenchmarker::clear(); // since ScopeBenchmarker works with static data, make sure we dont leave anything there
+        ScopeBenchmarkerDataStore::clear(); // since ScopeBenchmarker works with static data, make sure we dont leave anything there
     }
 
 }; // class Benchmark

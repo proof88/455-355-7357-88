@@ -40,7 +40,7 @@
     
     Note that when using "bitwise and" instead of "logical and", we cannot be sure about the evaluation order of operands.
     Thus neither the assertions nor the evaluated expressions within the assertions should have any side-effect of affecting
-    each other's results, the results should be identical in arbitrary evaluated order.
+    each other's results, the results should be identical in arbitrarily evaluated order.
     This responsibility is obviously on the unit test developer.
 */
 
