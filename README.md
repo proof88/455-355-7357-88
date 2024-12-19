@@ -8,7 +8,7 @@ A very basic header-only framework for unit testing and benchmarking in C++.
 It is very basic, and does not support mocking and other fancy stuff. Basically it is just a bunch of assert functions with convenient logging the results.  
 And even the benchmarking part is very limited, basically a scope time measurement class.
 
-Depends on the following libraries:
+Depends on the latest state of the following libraries:
  - [PFL](https://github.com/proof88/PFL)
  - [CConsole](https://github.com/proof88/Console)
 
