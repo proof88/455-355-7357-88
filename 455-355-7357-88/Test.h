@@ -26,7 +26,7 @@ class Test
 {
 public:
 
-    static constexpr char* frameworkVersion = "1.0";
+    static constexpr char* frameworkVersion = "1.2";
 
     /**
         Convenience function for running all test cases and summarizing the results.
