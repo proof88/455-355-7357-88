@@ -49,6 +49,13 @@ public:
 #ifdef TEST_WITH_CCONSOLE
     static void runTests(std::vector<std::unique_ptr<Test>>& tests, CConsole& console, const char* title = "")
     {
+        if (tests.empty())
+        {
+            console.OLn("Not Running Any %s This Time (tests vector empty).", title);
+            console.OLn("");
+            return;
+        }
+
         console.OLn("%s", title);
         console.OLn("Powered by: 455-355-7357-88 (ASS-ESS-TEST-88) Test Framework by PR00F88, version: %s", frameworkVersion);
 
