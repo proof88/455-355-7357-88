@@ -12,6 +12,7 @@
 
 #include <cassert>
 #include <cmath>
+#include <functional>
 #include <memory>   // for std::unique_ptr; requires cpp11
 #include <sstream>
 #include <string>
@@ -45,97 +46,105 @@ public:
         The Console lib is this: https://github.com/proof88/Console .
 
         If you want to use your own test runner and summarizer implementation, then don't define the TEST_WITH_CCONSOLE macro before including Test.h.
+
+        @param tests     The test objects, whose run() member function will be invoked.
+        @param consoleCb A callback function which returns the Console instance to be used by the test framework for logging.
+                         It is important to pass the proper callback function invoking CConsole::getConsoleInstance().
+                         The reason is that CConsole::getConsoleInstance() also sets the proper logger module name, which
+                         might be changed for the current thread by the tests. This problem is solved by using a callback function
+                         instead of just a simple Console reference.
+        @param title     Optional text to be logged before start running tests.
     */
 #ifdef TEST_WITH_CCONSOLE
-    static void runTests(std::vector<std::unique_ptr<Test>>& tests, CConsole& console, const char* title = "")
+    static void runTests(std::vector<std::unique_ptr<Test>>& tests, std::function<CConsole&(void)> consoleCb, const char* title = "")
     {
         if (tests.empty())
         {
-            console.OLn("Not Running Any %s This Time (tests vector empty).", title);
-            console.OLn("");
+            consoleCb().OLn("Not Running Any %s This Time (tests vector empty).", title);
+            consoleCb().OLn("");
             return;
         }
 
-        console.OLn("%s", title);
-        console.OLn("Powered by: 455-355-7357-88 (ASS-ESS-TEST-88) Test Framework by PR00F88, version: %s", frameworkVersion);
+        consoleCb().OLn("%s", title);
+        consoleCb().OLn("Powered by: 455-355-7357-88 (ASS-ESS-TEST-88) Test Framework by PR00F88, version: %s", frameworkVersion);
 
         size_t nSucceededTests = 0;
         size_t nTotalSubTests = 0;
         size_t nTotalPassedSubTests = 0;
         for (size_t i = 0; i < tests.size(); ++i)
         {
-            console.OLn("Running test %d / %d ... ", i + 1, tests.size());
+            consoleCb().OLn("Running test %d / %d ... ", i + 1, tests.size());
             tests[i]->run();
         }
 
         // summarizing
-        console.OLn("");
+        consoleCb().OLn("");
         for (size_t i = 0; i < tests.size(); ++i)
         {
             for (const auto& infoMsg : tests[i]->getInfoMessages())
             {
-                console.OLn("%s", infoMsg.c_str());
+                consoleCb().OLn("%s", infoMsg.c_str());
             }
 
             if (tests[i]->isPassed())
             {
                 ++nSucceededTests;
-                console.SOn();
+                consoleCb().SOn();
                 if (tests[i]->getName().empty())
                 {
-                    console.OLn("Test passed: %s(%d)!", tests[i]->getFile().c_str(), tests[i]->getSubTestCount());
+                    consoleCb().OLn("Test passed: %s(%d)!", tests[i]->getFile().c_str(), tests[i]->getSubTestCount());
                 }
                 else if (tests[i]->getFile().empty())
                 {
-                    console.OLn("Test passed: %s(%d)!", tests[i]->getName().c_str(), tests[i]->getSubTestCount());
+                    consoleCb().OLn("Test passed: %s(%d)!", tests[i]->getName().c_str(), tests[i]->getSubTestCount());
                 }
                 else
                 {
-                    console.OLn("Test passed: %s(%d) in %s!", tests[i]->getName().c_str(), tests[i]->getSubTestCount(), tests[i]->getFile().c_str());
+                    consoleCb().OLn("Test passed: %s(%d) in %s!", tests[i]->getName().c_str(), tests[i]->getSubTestCount(), tests[i]->getFile().c_str());
                 }
-                console.SOff();
+                consoleCb().SOff();
             }
             else
             {
-                console.EOn();
+                consoleCb().EOn();
                 if (tests[i]->getName().empty())
                 {
-                    console.OLn("Test failed: %s", tests[i]->getFile().c_str());
+                    consoleCb().OLn("Test failed: %s", tests[i]->getFile().c_str());
                 }
                 else if (tests[i]->getFile().empty())
                 {
-                    console.OLn("Test failed: %s", tests[i]->getName().c_str());
+                    consoleCb().OLn("Test failed: %s", tests[i]->getName().c_str());
                 }
                 else
                 {
-                    console.OLn("Test failed: %s in %s", tests[i]->getName().c_str(), tests[i]->getFile().c_str());
+                    consoleCb().OLn("Test failed: %s in %s", tests[i]->getName().c_str(), tests[i]->getFile().c_str());
                 }
-                console.Indent();
+                consoleCb().Indent();
                 for (size_t j = 0; j < tests[i]->getErrorMessages().size(); ++j)
                 {
-                    console.OLn("%s", tests[i]->getErrorMessages()[j].c_str());
+                    consoleCb().OLn("%s", tests[i]->getErrorMessages()[j].c_str());
                 }
-                console.Outdent();
-                console.EOff();
+                consoleCb().Outdent();
+                consoleCb().EOff();
             }
             nTotalSubTests += tests[i]->getSubTestCount();
             nTotalPassedSubTests += tests[i]->getPassedSubTestCount();
         }
 
-        console.OLn("");
-        console.OLn("========================================================");
+        consoleCb().OLn("");
+        consoleCb().OLn("========================================================");
         if (nSucceededTests == tests.size())
         {
-            console.SOn();
+            consoleCb().SOn();
         }
         else
         {
-            console.EOn();
+            consoleCb().EOn();
         }
-        console.OLn("Passed tests: %d / %d (SubTests: %d / %d)", nSucceededTests, tests.size(), nTotalPassedSubTests, nTotalSubTests);
-        console.NOn();
-        console.OLn("========================================================");
-        console.OLn("");
+        consoleCb().OLn("Passed tests: %d / %d (SubTests: %d / %d)", nSucceededTests, tests.size(), nTotalPassedSubTests, nTotalSubTests);
+        consoleCb().NOn();
+        consoleCb().OLn("========================================================");
+        consoleCb().OLn("");
     } // runTests()
 #endif
 

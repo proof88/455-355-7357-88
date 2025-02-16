@@ -182,10 +182,11 @@ public:
         auto& bmData = getDataByNameHash(m_nameHash);
 
         bmData.m_durationsTotal += thisDurationCount;
-        assert(bmData.m_durationsTotal > 0);
+
+        assert(bmData.m_durationsTotal >= 0);
         
         // dtor cannot throw
-        //if (bmData.m_durationsTotal <= 0)
+        //if (bmData.m_durationsTotal < 0)
         //{
         //    throw std::runtime_error("ScopeBenchmarker dtor: m_durationsTotal overflew!");
         //}
