@@ -833,6 +833,19 @@ public:
         return bWeAreInSubTest;
     }
 
+    template <class T>
+    static std::string toString(const T& value)
+    {
+        std::stringstream str;
+        str << value;
+        return str.str();
+    }
+
+    static std::string toString(bool value)
+    {
+        return value ? "TRUE" : "FALSE";
+    }
+
 
 protected:
     typedef bool (Test::* PFNUNITSUBTEST) (void);  /**< Type for a unit-subtest function pointer. */
@@ -901,7 +914,7 @@ protected:
         The test framework can implement test-type specific teardown here.
     */
     virtual void postTearDown()
-    {}
+    {} 
 
 protected:
     typedef std::pair<PFNUNITSUBTEST, std::string> TUNITSUBTESTFUNCNAMEPAIR;   /**< Subtest function pointer and subtest name pair. */
@@ -919,19 +932,6 @@ protected:
     bool bTestRan;                                     /**< Did the test attempt to run? */
 
     // ---------------------------------------------------------------------------
-
-    template <class T>
-    static std::string toString(const T& value)
-    {
-        std::stringstream str;
-        str << value;
-        return str.str();
-    }
-
-    static std::string toString(bool value)
-    {
-        return value ? "TRUE" : "FALSE";
-    }
 
     static std::string getFilename(const std::string& path)
     {
